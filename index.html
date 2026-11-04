@@ -1873,6 +1873,7 @@ input[type="number"]:focus { border-color: var(--accent); }
   background: var(--bg);
   min-width: 0;
   overflow: hidden;
+  position: relative;
 }
 
 #canvas-area {
@@ -1881,12 +1882,204 @@ input[type="number"]:focus { border-color: var(--accent); }
   align-items: center;
   justify-content: center;
   background-color: var(--bg);
-  background-image: 
-    radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 20px 20px;
   position: relative;
   padding: 24px;
   min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Bottom control bar ── */
+#bottom-bar {
+  flex-shrink: 0;
+  background: var(--sidebar);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: stretch;
+  min-height: 104px;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.bb-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 10px 16px;
+  min-width: 0;
+  flex: 1;
+  border-right: 1px solid var(--border);
+  gap: 6px;
+}
+.bb-section:last-child { border-right: none; }
+
+.bb-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 4px;
+  padding-left: 6px;
+  border-left: 2px solid var(--accent);
+}
+
+/* Hand style row in bottom bar */
+.bb-hand-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+.bb-hand-pill {
+  padding: 5px 6px;
+  text-align: center;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bb-hand-pill:hover {
+  border-color: var(--border-hi);
+  color: var(--text);
+  background: var(--surface-2);
+}
+.bb-hand-pill.selected {
+  border-color: #2563eb;
+  background: var(--accent-lo);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Speed sliders in bottom bar — compact two-row layout */
+.bb-sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bb-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.bb-slider-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+}
+.bb-slider-row .slider-val {
+  font-size: 10px;
+  min-width: 24px;
+  padding: 1px 4px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+/* Canvas size in bottom bar */
+.bb-size-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.bb-size-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  width: 100%;
+}
+.bb-size-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.bb-size-subtitle {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.bb-ratio-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.12s;
+  user-select: none;
+  white-space: nowrap;
+}
+.bb-ratio-btn:hover { border-color: var(--border-hi); color: var(--text); }
+.bb-ratio-btn.active {
+  border-color: #2563eb;
+  background: var(--accent-lo);
+  color: #ffffff;
+  font-weight: 600;
+}
+.bb-ratio-thumb {
+  background: var(--muted);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+.bb-ratio-btn.active .bb-ratio-thumb { background: #2563eb; }
+.bb-res-btn {
+  padding: 3px 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  font-size: 9.5px;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.12s;
+  user-select: none;
+}
+.bb-res-btn:hover { border-color: var(--border-hi); color: var(--text); }
+.bb-res-btn.active {
+  border-color: #2563eb;
+  background: var(--accent-lo);
+  color: #ffffff;
+  font-weight: 600;
+}
+.bb-size-readout {
+  font-size: 9px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  line-height: 1.2;
+  flex-basis: 100%;
+  margin-top: 2px;
+}
+@media (max-width: 1280px) {
+  #bottom-bar {
+    min-height: 116px;
+  }
+  .bb-hand-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 #canvas-wrapper {
@@ -4129,22 +4322,22 @@ input[type="number"]:focus { border-color: var(--accent); }
       </div>
       <span id="time-display">0%</span>
     </div>
+  </div><!-- /canvas-area -->
 
-    <!-- ════════ SCENE STRIP & CAMERA BAR ════════ -->
-    <div id="scene-strip-bar">
-      <div class="scene-strip-header">
-        <span>🎬 Scenes</span>
-        <button class="scene-add-btn" onclick="if(window.SceneManager)SceneManager.addScene()">+ Scene</button>
-      </div>
-      <div id="scene-strip-items" class="scene-strip-items"></div>
-      <div class="scene-camera-ctrls">
-        <span>🎥 Zoom</span>
-        <button class="cam-btn" onclick="if(window.SceneManager)SceneManager.setZoom(SceneManager.camera.zoom - 0.2)">−</button>
-        <span id="camera-zoom-val" style="min-width:32px;text-align:center;">100%</span>
-        <button class="cam-btn" onclick="if(window.SceneManager)SceneManager.setZoom(SceneManager.camera.zoom + 0.2)">+</button>
-        <button class="cam-btn" onclick="if(window.SceneManager)SceneManager.resetCamera()">Reset</button>
-        <button class="cam-btn wipe-btn" onclick="if(window.SceneManager)SceneManager.playEraserWipe()">🧽 Wipe Board</button>
-      </div>
+  <!-- ════════ SCENE STRIP & CAMERA BAR ════════ -->
+  <div id="scene-strip-bar">
+    <div class="scene-strip-header">
+      <span>🎬 Scenes</span>
+      <button class="scene-add-btn" onclick="if(window.SceneManager)SceneManager.addScene()">+ Scene</button>
+    </div>
+    <div id="scene-strip-items" class="scene-strip-items"></div>
+    <div class="scene-camera-ctrls">
+      <span>🎥 Zoom</span>
+      <button class="cam-btn" onclick="if(window.SceneManager)SceneManager.setZoom(SceneManager.camera.zoom - 0.2)">−</button>
+      <span id="camera-zoom-val" style="min-width:32px;text-align:center;">100%</span>
+      <button class="cam-btn" onclick="if(window.SceneManager)SceneManager.setZoom(SceneManager.camera.zoom + 0.2)">+</button>
+      <button class="cam-btn" onclick="if(window.SceneManager)SceneManager.resetCamera()">Reset</button>
+      <button class="cam-btn wipe-btn" onclick="if(window.SceneManager)SceneManager.playEraserWipe()">🧽 Wipe Board</button>
     </div>
   </div>
 
