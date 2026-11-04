@@ -132,7 +132,6 @@
 
     // ───────────── Eraser Wipe Transition ─────────────
     async playEraserWipe(durationMs = 900) {
-      if (window.AudioSFX) window.AudioSFX.wipe();
       const mainCvs = document.getElementById('main-canvas');
       const handCvs = document.getElementById('hand-canvas');
       if (!mainCvs) return;

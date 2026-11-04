@@ -3775,24 +3775,7 @@ input[type="number"]:focus { border-color: var(--accent); }
         <button class="toggle on" id="audio-duck-toggle" onclick="this.classList.toggle('on');AudioMix.duck=this.classList.contains('on')"></button>
       </div>
 
-      <!-- Procedural 0 KB Sound Effects -->
-      <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-          <span style="font-size:11px;font-weight:600;">Drawing Sound (0 KB)</span>
-          <select id="sfx-type-select" style="font-size:10px;padding:2px 4px;border-radius:4px;background:var(--panel);color:inherit;border:1px solid var(--border);" onchange="AudioSFX.type=this.value">
-            <option value="pencil">✏️ Pencil / Pen</option>
-            <option value="marker">🖊️ Marker</option>
-            <option value="chalk">🖍️ Chalk</option>
-            <option value="none">🔇 Mute</option>
-          </select>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <span style="font-size:10px;color:var(--muted);">SFX Vol</span>
-          <input type="range" id="sfx-vol-slider" min="0" max="100" value="50" style="flex:1;" oninput="AudioSFX.volume=this.value/100">
-        </div>
-      </div>
-
-      <div class="audio-note">Audio &amp; SFX start with the drawing, and video holds its last frame until audio ends. Use <b>Save File (.penstroke)</b> in the topbar to preserve all audio tracks on your computer!</div>
+      <div class="audio-note">Audio starts with the drawing, and video holds its last frame until audio ends. Use <b>Save File (.penstroke)</b> in the topbar to preserve all audio tracks on your computer!</div>
     </div>
   </div>
 
@@ -9271,7 +9254,6 @@ function _stepAnimationOnce() {
   // Parallel slot mode — tick all active slots then composite
   if (state._activeSlots && state._activeSlots.some(s => !s.done)) {
     AnimationEngine._tickAllSlots();
-    if (window.AudioSFX && AudioSFX.enabled && state.playing) AudioSFX.tick();
     return;
   }
   // Legacy single-path (no layers, or direct offscreen use)
@@ -9295,7 +9277,6 @@ function _stepAnimationOnce() {
     case 'spec-nature':    AnimationEngine.tickSpecialized(speed);  break;
     default:               AnimationEngine.tickScanner(speed);      break;
   }
-  if (window.AudioSFX && AudioSFX.enabled && state.playing) AudioSFX.tick();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

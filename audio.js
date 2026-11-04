@@ -19,122 +19,14 @@
   let _idSeq = 1;
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // PROCEDURAL 0 KB SOUND EFFECTS ENGINE (Web Audio API Synth)
+  // PROCEDURAL SOUND EFFECTS (Disabled)
   // ═══════════════════════════════════════════════════════════════════════════
   const AudioSFX = {
-    enabled: true,
-    type: 'pencil', // 'pencil' | 'marker' | 'chalk' | 'none'
-    volume: 0.5,
-    _noiseBuf: null,
-    _lastTick: 0,
-
-    _getNoise(ctx) {
-      if (this._noiseBuf && this._noiseBuf.sampleRate === ctx.sampleRate) return this._noiseBuf;
-      const len = ctx.sampleRate * 2; // 2 seconds of pink/white noise
-      const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-      const data = buf.getChannelData(0);
-      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-      for (let i = 0; i < len; i++) {
-        const white = Math.random() * 2 - 1;
-        // Pink noise filter
-        b0 = 0.99886 * b0 + white * 0.0555179;
-        b1 = 0.99332 * b1 + white * 0.0750759;
-        b2 = 0.96900 * b2 + white * 0.1538520;
-        b3 = 0.86650 * b3 + white * 0.3104856;
-        b4 = 0.55000 * b4 + white * 0.5329522;
-        b5 = -0.7616 * b5 - white * 0.0168980;
-        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
-        b6 = white * 0.115926;
-      }
-      this._noiseBuf = buf;
-      return buf;
-    },
-
-    /**
-     * Triggers a friction sound burst when the pen draws on canvas
-     */
-    tick() {
-      if (!this.enabled || this.type === 'none' || this.volume <= 0.01) return;
-      const now = performance.now();
-      if (now - this._lastTick < 45) return; // rate-limit to ~20 bursts/sec
-      this._lastTick = now;
-
-      const ctx = AudioMix._ensureCtx();
-      if (!ctx || ctx.state !== 'running') return;
-
-      const t = ctx.currentTime;
-      const noise = ctx.createBufferSource();
-      noise.buffer = this._getNoise(ctx);
-      noise.loop = true;
-      noise.loopStart = Math.random() * 0.5;
-      noise.loopEnd = noise.loopStart + 0.1;
-
-      const filter = ctx.createBiquadFilter();
-      const gain = ctx.createGain();
-
-      if (this.type === 'pencil') {
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(3200 + (Math.random() * 800 - 400), t);
-        filter.Q.setValueAtTime(3.5, t);
-        gain.gain.setValueAtTime(0.001, t);
-        gain.gain.linearRampToValueAtTime(this.volume * 0.22, t + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
-      } else if (this.type === 'chalk') {
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(1800 + (Math.random() * 500 - 250), t);
-        filter.Q.setValueAtTime(2.0, t);
-        gain.gain.setValueAtTime(0.001, t);
-        gain.gain.linearRampToValueAtTime(this.volume * 0.35, t + 0.012);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.065);
-      } else if (this.type === 'marker') {
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(2600 + (Math.random() * 400 - 200), t);
-        filter.Q.setValueAtTime(4.0, t);
-        gain.gain.setValueAtTime(0.001, t);
-        gain.gain.linearRampToValueAtTime(this.volume * 0.18, t + 0.01);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
-      }
-
-      noise.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      if (AudioMix.exportDest) gain.connect(AudioMix.exportDest);
-
-      noise.start(t);
-      noise.stop(t + 0.07);
-    },
-
-    /**
-     * Triggers an eraser / duster whoosh wipe sound
-     */
-    wipe() {
-      if (!this.enabled || this.volume <= 0.01) return;
-      const ctx = AudioMix._ensureCtx();
-      if (!ctx || ctx.state !== 'running') return;
-
-      const t = ctx.currentTime;
-      const noise = ctx.createBufferSource();
-      noise.buffer = this._getNoise(ctx);
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(500, t);
-      filter.frequency.exponentialRampToValueAtTime(2200, t + 0.2);
-      filter.frequency.exponentialRampToValueAtTime(400, t + 0.45);
-
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0.001, t);
-      gain.gain.linearRampToValueAtTime(this.volume * 0.4, t + 0.15);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
-
-      noise.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      if (AudioMix.exportDest) gain.connect(AudioMix.exportDest);
-
-      noise.start(t);
-      noise.stop(t + 0.55);
-    }
+    enabled: false,
+    type: 'none',
+    volume: 0,
+    tick() {},
+    wipe() {}
   };
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -289,7 +181,7 @@
 
     // ───────────── WebM export ─────────────
     getExportTrack() {
-      if (!this.hasTracks() && (!AudioSFX.enabled || AudioSFX.type === 'none')) return null;
+      if (!this.hasTracks()) return null;
       const ctx = this._ensureCtx();
       if (!ctx || !ctx.createMediaStreamDestination) return null;
       if (!this.exportDest) this.exportDest = ctx.createMediaStreamDestination();
@@ -540,11 +432,7 @@
       if (duckRow) duckRow.style.display = this.tracks.some(t => t.kind === 'voice') &&
                                            this.tracks.some(t => t.kind === 'music') ? 'flex' : 'none';
       
-      // Sync SFX UI
-      const sfxSel = document.getElementById('sfx-type-select');
-      if (sfxSel) sfxSel.value = AudioSFX.type;
-      const sfxVol = document.getElementById('sfx-vol-slider');
-      if (sfxVol) sfxVol.value = Math.round(AudioSFX.volume * 100);
+
     },
   };
 
