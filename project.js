@@ -59,7 +59,7 @@
       }));
 
       const projectData = {
-        app: 'Inkplainer',
+        app: 'Penstroke Studio',
         version: 2,
         exportedAt: new Date().toISOString(),
         name: (window.state.projectName || 'My Whiteboard Project'),
@@ -86,7 +86,7 @@
 
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${safeName}.inkplainer`;
+      a.download = `${safeName}.penstroke`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -104,7 +104,7 @@
         const text = await file.text();
         const data = JSON.parse(text);
         if (!data || !data.canvasW) {
-          throw new Error('Invalid or corrupted .inkplainer project file.');
+          throw new Error('Invalid or corrupted project file.');
         }
 
         if (window.showToast) window.showToast('Importing project...');
