@@ -17,6 +17,10 @@
       // Create initial scene if none exists
       if (!this.scenes.length) {
         const firstScene = this._createSceneObject('Scene 1');
+        const st = window.state || (typeof state !== 'undefined' ? state : null);
+        if (st && st.layers) {
+          firstScene.layers = st.layers.slice(0);
+        }
         this.scenes.push(firstScene);
         this.activeSceneId = firstScene.id;
       }
@@ -43,6 +47,7 @@
       const sc = this._createSceneObject(name);
       this.scenes.push(sc);
       this.switchScene(sc.id);
+      if (window.showToast) window.showToast('Added ' + sc.name);
     },
 
     duplicateScene(sceneId) {
@@ -51,10 +56,11 @@
       this.saveActiveSceneState();
       const orig = this.scenes[idx];
       const copy = JSON.parse(JSON.stringify(orig));
-      copy.id = 'scene_' + Date.now();
+      copy.id = 'scene_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
       copy.name = orig.name + ' (Copy)';
       this.scenes.splice(idx + 1, 0, copy);
       this.switchScene(copy.id);
+      if (window.showToast) window.showToast('Duplicated ' + orig.name);
     },
 
     deleteScene(sceneId) {
@@ -67,14 +73,16 @@
       this.scenes.splice(idx, 1);
       const nextScene = this.scenes[Math.max(0, idx - 1)];
       this.switchScene(nextScene.id);
+      if (window.showToast) window.showToast('Scene deleted');
     },
 
     saveActiveSceneState() {
-      if (!window.state) return;
+      const st = window.state || (typeof state !== 'undefined' ? state : null);
+      if (!st) return;
       const act = this.getActiveScene();
       if (!act) return;
       // Snapshot current layers and camera
-      act.layers = (window.state.layers || []).slice(0);
+      act.layers = (st.layers || []).slice(0);
       act.camera = { ...this.camera };
     },
 
@@ -82,19 +90,29 @@
       this.saveActiveSceneState();
       this.activeSceneId = sceneId;
       const target = this.getActiveScene();
-      if (!target || !window.state) return;
+      if (!target) return;
 
-      // Stop any running animation
-      if (window.resetAnim) window.resetAnim();
+      const st = window.state || (typeof state !== 'undefined' ? state : null);
+      if (st) {
+        // Stop any running animation
+        const resetFn = window.resetAnim || (typeof resetAnim === 'function' ? resetAnim : null);
+        if (resetFn) resetFn();
 
-      // Restore target scene's layers
-      window.state.layers = (target.layers || []).slice(0);
-      window.state.selectedLayerId = null;
-      this.camera = target.camera ? { ...target.camera } : { x: 0, y: 0, zoom: 1 };
+        // Restore target scene's layers
+        st.layers = (target.layers || []).slice(0);
+        st.selectedLayerId = null;
+        this.camera = target.camera ? { ...target.camera } : { x: 0, y: 0, zoom: 1 };
+      }
 
-      if (window.renderLayerList) window.renderLayerList();
-      if (window.redrawLayersOnCanvas) window.redrawLayersOnCanvas();
-      if (window.drawSelectionHandles) window.drawSelectionHandles();
+      const rList = window.renderLayerList || (typeof renderLayerList === 'function' ? renderLayerList : null);
+      if (rList) rList();
+
+      const rCanvas = window.redrawLayersOnCanvas || (typeof redrawLayersOnCanvas === 'function' ? redrawLayersOnCanvas : null);
+      if (rCanvas) rCanvas();
+
+      const dHandles = window.drawSelectionHandles || (typeof drawSelectionHandles === 'function' ? drawSelectionHandles : null);
+      if (dHandles) dHandles();
+
       this.renderStrip();
     },
 
@@ -172,6 +190,8 @@
       if (!container) return;
       container.innerHTML = '';
 
+      const st = window.state || (typeof state !== 'undefined' ? state : null);
+
       this.scenes.forEach((sc, i) => {
         const isAct = sc.id === this.activeSceneId;
         const item = document.createElement('div');
@@ -182,9 +202,10 @@
         title.className = 'scene-card-title';
         title.textContent = sc.name;
 
+        const layerCount = (isAct && st && st.layers) ? st.layers.length : (sc.layers || []).length;
         const count = document.createElement('span');
         count.className = 'scene-card-count';
-        count.textContent = `${(sc.layers || []).length} layer${(sc.layers || []).length !== 1 ? 's' : ''}`;
+        count.textContent = `${layerCount} layer${layerCount !== 1 ? 's' : ''}`;
 
         const actions = document.createElement('div');
         actions.className = 'scene-card-actions';
@@ -212,5 +233,9 @@
   };
 
   window.SceneManager = SceneManager;
-  document.addEventListener('DOMContentLoaded', () => SceneManager.init());
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => SceneManager.init());
+  } else {
+    SceneManager.init();
+  }
 })(window);

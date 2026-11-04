@@ -4323,7 +4323,7 @@ input[type="number"]:focus { border-color: var(--accent); }
   <div id="scene-strip-bar">
     <div class="scene-strip-header">
       <span>🎬 Scenes</span>
-      <button class="scene-add-btn" onclick="if(window.SceneManager)SceneManager.addScene()">+ Scene</button>
+      <button class="scene-add-btn" onclick="if(window.SceneManager){SceneManager.addScene();}else if(window.showToast){showToast('Initializing scenes...');}">+ Scene</button>
     </div>
     <div id="scene-strip-items" class="scene-strip-items"></div>
     <div class="scene-camera-ctrls">
@@ -6389,9 +6389,15 @@ function addLayer(img, name) {
   selectLayer(id);
   redrawLayersOnCanvas();
   scheduleAutoSave();
+  if (window.SceneManager) SceneManager.renderStrip();
 }
 window.addLayer = addLayer;
 window.showToast = showToast;
+window.renderLayerList = renderLayerList;
+window.redrawLayersOnCanvas = redrawLayersOnCanvas;
+window.drawSelectionHandles = drawSelectionHandles;
+window.selectLayer = selectLayer;
+window.resetAnim = resetAnim;
 
 function removeLayer(id) {
   pushUndoSnapshot();
@@ -6418,6 +6424,7 @@ function removeLayer(id) {
   redrawLayersOnCanvas();
   drawSelectionHandles();
   scheduleAutoSave();
+  if (window.SceneManager) SceneManager.renderStrip();
 }
 
 function selectLayer(id) {
