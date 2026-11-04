@@ -5824,12 +5824,12 @@ async function checkStorageUsage() {
 }
 
 // Initialize on load
-setTimeout(() => {
+window.addEventListener('load', () => {
   // Initialize canvas with default dimensions BEFORE loading project
-  // This prevents the "zoomed in" bug when adding first image
-  // Wait a bit for DOM to fully settle
   requestAnimationFrame(() => {
-    initCanvas(state.canvasW, state.canvasH);
+    if (typeof initCanvas === 'function' && typeof state !== 'undefined') {
+      initCanvas(state.canvasW, state.canvasH);
+    }
   });
   
   initDB().then(() => {
