@@ -178,7 +178,7 @@
     /**
      * Converts a doodle SVG into a PNG data URL so it can be added directly as a canvas layer.
      */
-    async toDataURL(doodleId, color = '#1e293b', scale = 2) {
+    async toDataURL(doodleId, color = '#18181b', scale = 2) {
       const d = DOODLES.find(x => x.id === doodleId);
       if (!d) return null;
       const [,, w, h] = d.viewBox.split(' ').map(Number);

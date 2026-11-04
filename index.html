@@ -3548,16 +3548,28 @@ input[type="number"]:focus { border-color: var(--accent); }
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 .doodle-preview {
-  width: 60px;
-  height: 60px;
+  width: 68px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: all 0.15s ease;
 }
 .doodle-preview svg {
   max-width: 100%;
   max-height: 100%;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.05));
+}
+.doodle-card:hover .doodle-preview {
+  border-color: #2563eb;
+  transform: scale(1.05);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
 }
 .doodle-name {
   font-size: 10px;
@@ -4628,7 +4640,7 @@ input[type="number"]:focus { border-color: var(--accent); }
       <div style="display:flex;align-items:center;gap:10px;">
         <label style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;">
           Color:
-          <input type="color" id="doodle-color-picker" value="#1e293b" style="width:24px;height:24px;border:none;border-radius:4px;cursor:pointer;background:none;">
+          <input type="color" id="doodle-color-picker" value="#18181b" oninput="renderDoodles(window._currentDoodleCat || 'all')" style="width:24px;height:24px;border:none;border-radius:4px;cursor:pointer;background:none;">
         </label>
         <button class="doodle-close-btn" onclick="closeDoodleModal()">✕</button>
       </div>
@@ -6177,6 +6189,7 @@ const _cachedElements = {
   progressFill: null,
   timeDisplay: null
 };
+window.state = state;
 
 function _cacheElements() {
   _cachedElements.speedSlider = document.getElementById('speed-slider');
@@ -6394,6 +6407,8 @@ function addLayer(img, name) {
   redrawLayersOnCanvas();
   scheduleAutoSave();
 }
+window.addLayer = addLayer;
+window.showToast = showToast;
 
 function removeLayer(id) {
   pushUndoSnapshot();
@@ -11564,7 +11579,8 @@ function obEnd() {
 (function initOnboarding() {
   if (!localStorage.getItem(OB_KEY)) {
     setTimeout(() => {
-      document.getElementById('welcome-modal').classList.remove('hidden');
+      const wm = document.getElementById('welcome-modal');
+      if (wm) wm.classList.remove('hidden');
     }, 600);
   }
 })();
@@ -11572,11 +11588,12 @@ function obEnd() {
 
 <script>
 // ── Doodle Library UI Logic ──
+window._currentDoodleCat = 'all';
 function openDoodleModal() {
   const modal = document.getElementById('doodle-modal');
   if (modal) {
     modal.classList.add('open');
-    renderDoodles('all');
+    renderDoodles(window._currentDoodleCat || 'all');
   }
 }
 function closeDoodleModal() {
@@ -11584,41 +11601,50 @@ function closeDoodleModal() {
   if (modal) modal.classList.remove('open');
 }
 function filterDoodles(cat, btn) {
+  window._currentDoodleCat = cat;
   document.querySelectorAll('.doodle-tab-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   renderDoodles(cat);
 }
 function renderDoodles(cat) {
+  window._currentDoodleCat = cat || window._currentDoodleCat || 'all';
   const grid = document.getElementById('doodle-grid-container');
   if (!grid || !window.DoodleLibrary) return;
   grid.innerHTML = '';
-  const doodles = DoodleLibrary.getByCategory(cat);
-  const color = document.getElementById('doodle-color-picker')?.value || '#1e293b';
+  const doodles = DoodleLibrary.getByCategory(window._currentDoodleCat);
+  const color = document.getElementById('doodle-color-picker')?.value || '#18181b';
 
   doodles.forEach(d => {
     const card = document.createElement('div');
     card.className = 'doodle-card';
     card.onclick = async () => {
       try {
-        const curColor = document.getElementById('doodle-color-picker')?.value || '#1e293b';
+        const curColor = document.getElementById('doodle-color-picker')?.value || '#18181b';
         const dataUrl = await DoodleLibrary.toDataURL(d.id, curColor, 2);
-        if (dataUrl && window.addNewLayerFromImage) {
-          const img = new Image();
-          img.onload = () => {
-            addNewLayerFromImage(img, d.name);
-            closeDoodleModal();
-            if (window.showToast) window.showToast('Added ' + d.name);
-          };
-          img.src = dataUrl;
+        if (dataUrl) {
+          const addFn = window.addLayer || (typeof addLayer === 'function' ? addLayer : null);
+          if (addFn) {
+            const img = new Image();
+            img.onload = () => {
+              addFn(img, d.name);
+              closeDoodleModal();
+              if (typeof showToast === 'function') {
+                showToast('Added ' + d.name + ' to board');
+              } else if (window.showToast) {
+                window.showToast('Added ' + d.name + ' to board');
+              }
+            };
+            img.src = dataUrl;
+          }
         }
       } catch (e) {
-        console.error(e);
+        console.error('Error adding doodle layer:', e);
       }
     };
 
     const prev = document.createElement('div');
     prev.className = 'doodle-preview';
-    prev.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${d.viewBox}" style="color:${color}">${d.svg}</svg>`;
+    prev.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${d.viewBox}" style="color:${color}; width:100%; height:100%;">${d.svg}</svg>`;
 
     const name = document.createElement('span');
     name.className = 'doodle-name';
